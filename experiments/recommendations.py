@@ -85,13 +85,19 @@ def topMatches(prefs, person, n=3, similarity=sim_pearson):
               for other in prefs if other != person]
     scores.sort()
     scores.reverse()
-    return scores[0:n]
+    return scores   # changed from scores[0:n] because I want all scores
 
-def getRecommendations(prefs, person, similarity = sim_pearson):
+def getRecommendations(prefs, person, similarity = sim_pearson, dgpa = False, gpa = {}, delta = 0):
     totals = {}
     simSums = {}
     for other in prefs:
         sim = similarity(prefs, person, other)
+        if dgpa:
+            student_gpa = gpa[person]
+            other_gpa = gpa[other]
+            gpa_diff = abs(student_gpa - other_gpa)
+            if gpa_diff > delta:
+                continue
 
         if sim <= 0: continue
         for item in prefs[other]:
@@ -154,7 +160,7 @@ def getRecommendedItems(prefs,itemMatch,user):
             totalSim[item2]+=similarity
 
     # Divide each total score by total weighting to get an average
-    rankings=[(round(score/totalSim[item], 2),item) for item,score in scores.items()]
+    rankings=[(round(score/totalSim[item], 2),item) for item,score in scores.items() if totalSim[item] > 0]
     # Return the rankings from highest to lowest
     rankings.sort()
     rankings.reverse()
